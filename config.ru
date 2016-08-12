@@ -1,4 +1,6 @@
 require 'dashing'
+require 'redis-objects'
+require 'yaml'
 
 configure do
   set :auth_token, 'YOUR_AUTH_TOKEN'
@@ -9,6 +11,23 @@ configure do
       # This method is run before accessing any resource.
     end
   end
+end
+
+def redis?
+  ENV.has_key? 'REDISTOGO_URL'
+end
+
+if redis?
+  redis_uri = URI.parse(ENV['REDISTOGO_URL'])
+  Redis.current = Redis.new(:host => redis_uri.host,
+      :port => redis_uri.port,
+      :password => redis_uri.password)
+
+  set :history, Redis::HashKey.new('dashing-history')
+elsif File.exists?(settings.history_file)
+  set history: YAML.load_file(settings.history_file)
+else
+  set history: {}
 end
 
 map Sinatra::Application.assets_prefix do
