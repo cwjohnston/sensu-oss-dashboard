@@ -17,7 +17,7 @@ Redis.current = Redis.new(
   :password => redis_uri.password
 )
 
-SCHEDULER.every '20m', :first_in => 0 do |job|
+SCHEDULER.every '1h', :first_in => 0 do |job|
   @org_repos = Redis::HashKey.new("github_org_repos:sensu-plugins")
   @client.org_repos("sensu-plugins").each do |repo_resource|
     begin
